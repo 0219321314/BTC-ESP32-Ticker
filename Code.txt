@@ -1,0 +1,304 @@
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <U8g2lib.h>
+
+#include <ArduinoJson.h>
+#include <HTTPClient.h>
+
+U8X8_SSD1306_128X64_NONAME_SW_I2C u8x8(15,4,16);
+
+char ssid[] = "YourSSIDhere";       // your network SSID (name)
+char password[] = "Password1";  // your network key
+
+
+WiFiClientSecure client;
+
+
+void setup() {
+
+
+ u8x8.begin();
+  u8x8.setPowerSave(0);
+
+
+  Serial.begin(115200);
+
+  // Attempt to connect to Wifi network:
+  Serial.print("Connecting Wifi: ");
+
+
+
+
+ u8x8.begin();
+ u8x8.setPowerSave(0);
+ u8x8.setFont(u8x8_font_5x7_f);
+ // u8x8.drawString(0,0,"Hello World!");
+ u8x8.refreshDisplay();    // only required for SSD1606/7  
+ delay(500);
+  u8x8.drawString(0,0,"ConnectingWifi:");
+  delay(100);
+  Serial.println(ssid);
+ u8x8.drawString(0,1,ssid);
+delay(100);
+  
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  u8x8.drawString(0,3,"WiFi connected");
+  Serial.println("IP address: ");
+
+  IPAddress ip = WiFi.localIP();
+  Serial.println(ip);
+
+  u8x8.setCursor(0, 4);
+u8x8.print(ip);
+
+u8x8.drawString(3,6,"H  O  D  L");
+
+  delay(2500);
+u8x8.clear();
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+u8x8.begin();
+ u8x8.setPowerSave(0);
+ u8x8.setFont(u8x8_font_5x7_f);
+delay(200);
+
+//get the gecko data
+HTTPClient http;
+
+    http.begin ("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin%2Cethereum%2Cdero&vs_currencies=eur%2Cgbp%2Cusd&include_24hr_change=true");
+    int httpCode = http.GET();
+
+    if (httpCode > 0) {
+
+    }
+
+    Serial.println ("\nStatuscode: " + String(httpCode));
+    delay (100);
+
+
+
+// orig code:     const size_t capacity = JSON_OBJECT_SIZE(2) + 2 * JSON_OBJECT_SIZE(6) + 150;
+    const size_t capacity = JSON_OBJECT_SIZE(3) + 3 * JSON_OBJECT_SIZE(9) + 350;    //increased the values to get it working, have no clue why this works.
+    DynamicJsonDocument doc(capacity);
+    String payload = http.getString();
+    const char* json = payload.c_str();
+
+
+    deserializeJson(doc, json);
+
+    JsonObject bitcoin = doc["bitcoin"];
+    float bitcoin_eur = bitcoin["eur"]; // 9473.3
+    float bitcoin_eur_24h_change = bitcoin["eur_24h_change"]; // 11.379516678954898
+    float bitcoin_gbp = bitcoin["gbp"]; // 8642.89
+    float bitcoin_gbp_24h_change = bitcoin["gbp_24h_change"]; // 11.58637677393075
+    float bitcoin_usd = bitcoin["usd"]; // 11140.6
+    float bitcoin_usd_24h_change = bitcoin["usd_24h_change"]; // 12.464050392648252
+
+    JsonObject ethereum = doc["ethereum"];
+    float ethereum_eur = ethereum["eur"]; // 276.02
+    float ethereum_eur_24h_change = ethereum["eur_24h_change"]; // 3.5689620753981264
+    float ethereum_gbp = ethereum["gbp"]; // 251.82
+    float ethereum_gbp_24h_change = ethereum["gbp_24h_change"]; // 3.7613159836416026
+    float ethereum_usd = ethereum["usd"]; // 324.6
+    float ethereum_usd_24h_change = ethereum["usd_24h_change"]; // 4.577442219792744
+
+    JsonObject dero = doc["dero"];
+    float dero_eur = dero["eur"]; // 276.02
+    float dero_eur_24h_change = dero["eur_24h_change"]; // 3.5689620753981264
+    float dero_gbp = dero["gbp"]; // 251.82
+    float dero_gbp_24h_change = dero["gbp_24h_change"]; // 3.7613159836416026
+    float dero_usd = dero["usd"]; // 324.6
+    float dero_usd_24h_change = dero["usd_24h_change"]; // 4.577442219792744
+
+    Serial.println("-------------------------------");
+//btc
+    Serial.print("EUR: ");
+    Serial.println(bitcoin_eur);
+    Serial.print("EUR 24hr %: ");
+    Serial.println(bitcoin_eur_24h_change);
+
+    Serial.print("GBP: ");
+    Serial.println(bitcoin_gbp);
+    Serial.print("GBP 24hr %: ");
+    Serial.println(bitcoin_gbp_24h_change);
+
+    Serial.print("USD: ");
+    Serial.println(bitcoin_usd);
+    Serial.print("USD 24hr %: ");
+    Serial.println(bitcoin_gbp_24h_change);
+//eth
+    Serial.print("EUR: ");
+    Serial.println(ethereum_eur);
+    Serial.print("EUR 24hr %: ");
+    Serial.println(ethereum_eur_24h_change);
+
+    Serial.print("GBP: ");
+    Serial.println(ethereum_gbp);
+    Serial.print("GBP 24hr %: ");
+    Serial.println(ethereum_gbp_24h_change);
+
+    Serial.print("USD: ");
+    Serial.println(ethereum_usd);
+    Serial.print("USD 24hr %: ");
+    Serial.println(ethereum_usd_24h_change);
+//dero
+    Serial.print("EUR: ");
+    Serial.println(dero_eur);
+    Serial.print("EUR 24hr %: ");
+    Serial.println(dero_eur_24h_change);
+
+    Serial.print("GBP: ");
+    Serial.println(dero_gbp);
+    Serial.print("GBP 24hr %: ");
+    Serial.println(dero_gbp_24h_change);
+
+    Serial.print("USD: ");
+    Serial.println(dero_usd);
+    Serial.print("USD 24hr %: ");
+    Serial.println(dero_usd_24h_change);
+
+
+
+
+
+
+    
+
+    Serial.println("-------------------------------");
+
+
+
+//show it on the screen =
+
+//BTC
+u8x8.setCursor(0, 0);
+u8x8.print("-=Bitcoin=-");
+
+u8x8.drawString(0, 1,"USD: ");
+u8x8.setCursor(5, 1);
+u8x8.print(bitcoin_usd, 2); //the 2 indicates we want 2 decimal places, without this it will either round up or down.
+
+u8x8.drawString(0, 2,"GBP: ");
+u8x8.setCursor(5, 2);
+u8x8.print(bitcoin_gbp, 2);
+
+u8x8.drawString(0, 3,"24hr %: ");
+u8x8.setCursor(6, 3);
+u8x8.print(bitcoin_usd_24h_change, 2);
+
+delay(8000);
+u8x8.clear();
+
+//Eth
+u8x8.setCursor(0, 0);
+u8x8.print("-=Ethereum=-");
+
+u8x8.drawString(0, 1,"USD: ");
+u8x8.setCursor(5, 1);
+u8x8.print(ethereum_usd, 2);
+
+u8x8.drawString(0, 2,"GBP: ");
+u8x8.setCursor(5, 2);
+u8x8.print(ethereum_gbp, 2);
+
+u8x8.drawString(0, 3,"24hr %: ");
+u8x8.setCursor(6, 3);
+u8x8.print(ethereum_usd_24h_change, 2);
+
+delay(8000);
+u8x8.clear();
+
+//Dero
+u8x8.setCursor(0, 0);
+u8x8.print("-=Dero=-");
+
+u8x8.drawString(0, 1,"USD: ");
+u8x8.setCursor(5, 1);
+u8x8.print(dero_usd, 2);
+
+u8x8.drawString(0, 2,"GBP: ");
+u8x8.setCursor(5, 2);
+u8x8.print(dero_gbp, 2);
+
+u8x8.drawString(0, 3,"24hr %: ");
+u8x8.setCursor(6, 3);
+u8x8.print(dero_usd_24h_change, 2);
+
+delay(8000);
+u8x8.clear();
+
+// aagain
+
+//BTC
+u8x8.setCursor(0, 0);
+u8x8.print("-=Bitcoin=-");
+
+u8x8.drawString(0, 1,"USD: ");
+u8x8.setCursor(5, 1);
+u8x8.print(bitcoin_usd, 2);
+
+u8x8.drawString(0, 2,"GBP: ");
+u8x8.setCursor(5, 2);
+u8x8.print(bitcoin_gbp, 2);
+
+u8x8.drawString(0, 3,"24hr %: ");
+u8x8.setCursor(6, 3);
+u8x8.print(bitcoin_usd_24h_change, 2);
+
+delay(8000);
+u8x8.clear();
+
+//Eth
+u8x8.setCursor(0, 0);
+u8x8.print("-=Ethereum=-");
+
+u8x8.drawString(0, 1,"USD: ");
+u8x8.setCursor(5, 1);
+u8x8.print(ethereum_usd, 2);
+
+u8x8.drawString(0, 2,"GBP: ");
+u8x8.setCursor(5, 2);
+u8x8.print(ethereum_gbp, 2);
+
+u8x8.drawString(0, 3,"24hr %: ");
+u8x8.setCursor(6, 3);
+u8x8.print(ethereum_usd_24h_change, 2);
+
+delay(8000);
+u8x8.clear();
+
+//Dero
+u8x8.setCursor(0, 0);
+u8x8.print("-=Dero=-");
+
+u8x8.drawString(0, 1,"USD: ");
+u8x8.setCursor(5, 1);
+u8x8.print(dero_usd, 2);
+
+u8x8.drawString(0, 2,"GBP: ");
+u8x8.setCursor(5, 2);
+u8x8.print(dero_gbp, 2);
+
+u8x8.drawString(0, 3,"24hr %: ");
+u8x8.setCursor(6, 3);
+u8x8.print(dero_usd_24h_change, 2);
+
+delay(8000);
+u8x8.clear();
+
+http.end();
+
+
+
+}
